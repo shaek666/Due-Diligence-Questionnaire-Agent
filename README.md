@@ -21,9 +21,7 @@ See `backend/README.md` and `frontend/README.md` for service-specific details.
 - Frontend: http://localhost:5173
 
 ## Quick Start (Local)
-- Backend: `cd backend && pip install -r requirements.txt && uvicorn app:app --reload`
-- Worker: `celery -A src.workers.celery_app.celery_app worker --loglevel=info`
-- Frontend: `cd frontend && npm install && npm run dev`
+Local scripts have been removed. Use Docker Compose.
 
 ## QA Checklist
 - Upload sample PDFs in `data/` via Document Management.

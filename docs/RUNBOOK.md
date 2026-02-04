@@ -21,23 +21,13 @@ This runbook covers two modes:
 - Frontend: http://localhost:5173
 - API: http://localhost:8000
 
-## B. Fallback Mode (no heavy ML)
+## B. Docker-Only Mode
 
-1) Install backend deps
-- pip install -r backend/requirements-base.txt
+- Run `docker compose up --build`
+- Frontend: http://localhost:5173
+- API: http://localhost:8000
 
-2) Start backend services
-- ./scripts/run_local_fallback.sh
-
-3) Start frontend
-- cd frontend
-- npm install
-- npm run dev
-
-## C. Stop Services
-- ./scripts/stop_local.sh
-
-## D. Test Plan A-Z
+## C. Test Plan A-Z
 
 A) Health
 - GET /health returns {"status":"ok"}

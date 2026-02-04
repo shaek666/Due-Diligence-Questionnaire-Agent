@@ -16,3 +16,4 @@ frontend/.env
 .celery*.log
 DueDiligence-ref/
 .tmp_ignored/
+.tmp_removed/
