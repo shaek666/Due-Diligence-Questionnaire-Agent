@@ -107,7 +107,22 @@ export type TabKey =
   | "review"
   | "documents"
   | "evaluation"
-  | "requests";
+  | "requests"
+  | "chat";
+
+export interface ChatSession {
+  id: string;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  answer_payload?: AnswerPayload | null;
+  created_at: string;
+}
 
 interface AppState {
   activeTab: TabKey;
@@ -123,6 +138,10 @@ interface AppState {
   setCurrentProject: (project?: ProjectDetail) => void;
   requests: RequestRecord[];
   setRequests: (requests: RequestRecord[]) => void;
+  chatSessionId?: string;
+  setChatSessionId: (id?: string) => void;
+  chatMessages: ChatMessage[];
+  setChatMessages: (messages: ChatMessage[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -145,4 +164,8 @@ export const useAppStore = create<AppState>((set) => ({
   setCurrentProject: (project) => set({ currentProject: project }),
   requests: [],
   setRequests: (requests) => set({ requests }),
+  chatSessionId: undefined,
+  setChatSessionId: (id) => set({ chatSessionId: id }),
+  chatMessages: [],
+  setChatMessages: (messages) => set({ chatMessages: messages }),
 }));

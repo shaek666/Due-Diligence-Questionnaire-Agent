@@ -231,6 +231,58 @@ body {
   color: var(--muted);
 }
 
+.chat-box {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  padding: 14px;
+  min-height: 240px;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-message {
+  border: 1px solid var(--line);
+  padding: 12px;
+  background: rgba(10, 20, 28, 0.4);
+}
+
+.chat-message.user {
+  border-color: var(--accent);
+}
+
+.chat-message.assistant {
+  border-color: var(--accent-2);
+}
+
+.chat-role {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.chat-content {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.chat-citations {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.citation {
+  border: 1px solid var(--line);
+  padding: 4px 6px;
+}
+
 @media (max-width: 960px) {
   .app-shell {
     grid-template-columns: 1fr;

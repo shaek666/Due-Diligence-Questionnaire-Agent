@@ -23,3 +23,7 @@
 6) Validate OUTDATED
 - Upload a new document after indexing.
 - Confirm ALL_DOCS project becomes OUTDATED.
+
+7) Chat (optional)
+- Create a chat session and send a question.
+- Confirm response includes citations and confidence.

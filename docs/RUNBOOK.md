@@ -20,7 +20,7 @@ Redis, and frontend.
 4) Confirm API: `http://localhost:8000/health`
 
 ## C) Migration Notes
-- New tables: document_pages, review_events, config_state.
+- New tables: document_pages, review_events, chat_sessions, chat_messages, config_state.
 - The app uses `Base.metadata.create_all`, so missing tables are created on startup.
 - If schema issues appear, reset volumes:
   - `docker compose down -v`
@@ -73,7 +73,12 @@ J) Frontend sanity
 - Ensure all tabs render without errors
 - Validate navigation and state
 
-K) Config change regeneration
+K) Chat (optional)
+- Open Chat tab
+- Create a session and send a question
+- Confirm citations and confidence in responses
+
+L) Config change regeneration
 - Change chunk sizes or model settings in `.env`
 - Restart the stack
 - Confirm regeneration requests appear in Request Status

@@ -11,6 +11,7 @@ Core components:
 - Indexing service: chunks, embeds, and stores citation metadata
 - Questionnaire parser: extracts sections and questions
 - Answering service: retrieval + generation + citations + confidence
+- Optional chat service: read-only Q&A against indexed corpus
 - Review workflow: manual overrides and status changes
 - Evaluation service: compares AI answers to human ground-truth
 
@@ -19,7 +20,7 @@ Core components:
 - API service (FastAPI): orchestrates requests and serves data.
 - Worker service: long-running jobs for indexing and generation.
 - Storage:
-  - Postgres: projects, documents, document_pages, questions, answers, requests, review_events
+  - Postgres: projects, documents, document_pages, questions, answers, requests, review_events, chat tables
   - Chroma: embeddings and chunk metadata
   - Object storage (local or filesystem): original files and parsed artifacts
   - Config state: pipeline signature for automatic regeneration
@@ -37,6 +38,7 @@ Core components:
 - Postgres tables:
   - projects, documents, document_pages, questions, answers, requests, evaluation_runs
   - review_events (manual review audit trail)
+  - chat_sessions, chat_messages
   - config_state (pipeline signature + regen state)
 - Chroma collections:
   - coarse_retrieval (section-level)
@@ -57,3 +59,8 @@ On startup, the API computes a pipeline signature (chunking, embeddings, and LLM
 configuration). If it differs from the stored signature, a background task
 re-indexes documents, re-parses questionnaires, and regenerates answers. A
 lightweight watcher re-checks the signature at a fixed interval.
+
+## Chat Extension
+Chat uses the same retrieval pipeline as questionnaire answering and is strictly
+read-only. It does not mutate project state or answers, and it shares the same
+citations and confidence model for auditability.
