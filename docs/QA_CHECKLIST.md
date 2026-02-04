@@ -23,3 +23,7 @@
 ## Status
 - After indexing a new document, confirm ALL_DOCS projects change to OUTDATED.
 - Verify request status records update to SUCCEEDED/FAILED.
+
+## Chat (Optional)
+- Create a chat session and send a question.
+- Confirm response includes citations and confidence.

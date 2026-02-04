@@ -71,3 +71,8 @@ I) Export
 J) Frontend sanity
 - Ensure all tabs render without errors
 - Validate navigation and state
+
+K) Chat (optional)
+- Open Chat tab
+- Create a session and send a question
+- Confirm citations and confidence in responses

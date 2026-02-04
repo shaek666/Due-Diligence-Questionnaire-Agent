@@ -9,12 +9,22 @@ from pydantic import BaseModel, Field
 from .enums import AnswerStatus, ProjectStatus, RequestStatus
 
 
+class BoundingBox(BaseModel):
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+    unit: str = "pt"
+    source: str = "page"
+
+
 class Citation(BaseModel):
     document_id: UUID
     page_number: int
     chunk_id: str
     snippet: str
     score: float
+    bounding_box: Optional[BoundingBox] = None
 
 
 class AnswerPayload(BaseModel):
@@ -63,6 +73,20 @@ class RequestRecord(BaseModel):
     updated_at: datetime
 
 
+class ChatSessionRecord(BaseModel):
+    id: UUID
+    created_at: datetime
+
+
+class ChatMessageRecord(BaseModel):
+    id: UUID
+    session_id: UUID
+    role: str
+    content: str
+    answer_payload: Optional[AnswerPayload] = None
+    created_at: datetime
+
+
 class DocumentRecord(BaseModel):
     id: UUID
     name: str
@@ -74,6 +98,16 @@ class DocumentRecord(BaseModel):
 
 
 class RequestIdResponse(BaseModel):
+    request_id: UUID
+
+
+class ChatMessageRequest(BaseModel):
+    session_id: Optional[UUID] = None
+    message: str
+
+
+class ChatMessageResponse(BaseModel):
+    session_id: UUID
     request_id: UUID
 
 

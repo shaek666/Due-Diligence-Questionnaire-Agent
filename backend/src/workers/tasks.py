@@ -8,10 +8,11 @@ from ..models.enums import RequestStatus
 from ..storage.db import db_session
 from ..services.indexing import index_document
 from ..services.requests import update_request
-from ..models.db_models import Project, Question
+from ..models.db_models import Project, Question, Document, ChatMessage
 from ..models.enums import ProjectStatus
 from ..services.answers import generate_answer, upsert_ai_answer
 from ..services.evaluation import evaluate_project
+from ..services.chat import add_message
 from ..services.questionnaire import parse_questionnaire_pdf
 from ..services.questions import get_questions_for_project, store_questions
 from ..services.projects import set_project_status
@@ -120,4 +121,63 @@ def evaluate_project_task(request_id: str, project_id: str) -> None:
     except Exception as exc:  # pragma: no cover
         _set_status(request_uuid, RequestStatus.FAILED, detail=str(exc))
         logger.exception("evaluate_project.failed request=%s project=%s", request_id, project_id)
+        raise
+
+
+@celery_app.task(name="chat_generate")
+def chat_generate_task(request_id: str, session_id: str, message_id: str) -> None:
+    request_uuid = UUID(request_id)
+    logger.info("chat_generate.start request=%s session=%s", request_id, session_id)
+    _set_status(request_uuid, RequestStatus.RUNNING)
+    try:
+        with db_session() as db:
+            message = db.get(ChatMessage, UUID(message_id))
+            if message is None:
+                raise ValueError("Chat message not found")
+            payload, _status = generate_answer(message.content)
+            add_message(
+                db,
+                UUID(session_id),
+                role="assistant",
+                content=payload.answer,
+                answer_payload=payload.model_dump(mode="json"),
+            )
+        _set_status(request_uuid, RequestStatus.SUCCEEDED)
+        logger.info("chat_generate.success request=%s session=%s", request_id, session_id)
+    except Exception as exc:  # pragma: no cover
+        _set_status(request_uuid, RequestStatus.FAILED, detail=str(exc))
+        logger.exception("chat_generate.failed request=%s session=%s", request_id, session_id)
+        raise
+
+
+@celery_app.task(name="handle_config_change")
+def handle_config_change_task(previous_signature: str | None, current_signature: str) -> None:
+    logger.info(
+        "config_change.start previous=%s current=%s",
+        previous_signature,
+        current_signature,
+    )
+    try:
+        with db_session() as db:
+            projects = db.query(Project).all()
+            documents = db.query(Document).all()
+            for project in projects:
+                set_project_status(db, project.id, ProjectStatus.REGENERATING)
+            for document in documents:
+                if document.path:
+                    index_document(db, str(document.id))
+            for project in projects:
+                questionnaire_path = project.metadata_.get("questionnaire_path")
+                if questionnaire_path:
+                    questions = parse_questionnaire_pdf(questionnaire_path)
+                    store_questions(db, project, questions)
+            for project in projects:
+                questions = get_questions_for_project(db, str(project.id))
+                for question in questions:
+                    payload, status = generate_answer(question.prompt)
+                    upsert_ai_answer(db, question, payload, status)
+                set_project_status(db, project.id, ProjectStatus.READY)
+        logger.info("config_change.success current=%s", current_signature)
+    except Exception:  # pragma: no cover - task failure capture
+        logger.exception("config_change.failed current=%s", current_signature)
         raise

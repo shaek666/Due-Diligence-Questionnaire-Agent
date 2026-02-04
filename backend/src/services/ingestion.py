@@ -13,6 +13,8 @@ from pptx import Presentation
 class PageText:
     page_number: int
     text: str
+    page_width: float | None = None
+    page_height: float | None = None
 
 
 def parse_pdf(path: str) -> list[PageText]:
@@ -20,7 +22,15 @@ def parse_pdf(path: str) -> list[PageText]:
     pages = []
     for index, page in enumerate(reader.pages, start=1):
         text = page.extract_text() or ""
-        pages.append(PageText(page_number=index, text=text))
+        media_box = page.mediabox
+        pages.append(
+            PageText(
+                page_number=index,
+                text=text,
+                page_width=float(media_box.width),
+                page_height=float(media_box.height),
+            )
+        )
     return pages
 
 

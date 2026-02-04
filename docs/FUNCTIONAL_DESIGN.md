@@ -5,6 +5,7 @@
 2) Upload questionnaire -> Parse -> Create project
 3) Generate answers -> Review -> Update status
 4) Run evaluation -> Inspect report
+5) Optional: Chat -> Retrieve + answer with citations (read-only)
 
 ## API Behaviors
 - POST /index-document-async
@@ -29,6 +30,13 @@
   - Project + last request status
 - GET /get-request-status
   - Request status and error details
+- POST /create-chat-session
+  - Creates a chat session for follow-up questions
+- POST /chat-message-async
+  - Accepts session_id + message
+  - Returns request_id + session_id
+- GET /list-chat-messages
+  - Returns chat history with citations and confidence
 
 ## Status Transitions
 - Any indexing or answer generation request must create a Request record.
@@ -40,3 +48,6 @@
 - No relevant citations: answer is not allowed to cite unrelated chunks.
 - Questionnaire parse errors: return FAILED with error detail.
 - New documents: ALL_DOCS projects become OUTDATED.
+- Config changes: pipeline signature mismatch triggers auto re-index and
+  regeneration in the background.
+- Chat is read-only and does not mutate questionnaire answers or project state.

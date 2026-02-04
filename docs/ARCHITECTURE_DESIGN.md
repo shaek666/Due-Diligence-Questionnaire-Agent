@@ -11,6 +11,7 @@ Core components:
 - Indexing service: chunks, embeds, and stores citation metadata
 - Questionnaire parser: extracts sections and questions
 - Answering service: retrieval + generation + citations + confidence
+- Optional chat service: read-only Q&A against indexed corpus
 - Review workflow: manual overrides and status changes
 - Evaluation service: compares AI answers to human ground-truth
 
@@ -22,6 +23,7 @@ Core components:
   - Postgres: projects, questions, answers, requests, reviews
   - Chroma: embeddings and chunk metadata
   - Object storage (local or filesystem): original files and parsed artifacts
+  - Config state: pipeline signature for automatic regeneration
 
 ## Data Flow (Happy Path)
 1) Upload reference documents.
@@ -34,11 +36,12 @@ Core components:
 
 ## Storage Layout
 - Postgres tables:
-  - projects, documents, document_pages, questions, answers, requests,
-    evaluations, review_events
+  - projects, documents, questions, answers, requests, evaluation_runs
+  - chat_sessions, chat_messages
+  - config_state (pipeline signature)
 - Chroma collections:
   - coarse_retrieval (section-level)
-  - citation_chunks (fine-grained, with page + bbox metadata)
+  - citation_chunks (fine-grained, with page + bbox metadata; PDF uses page-level bbox)
 - File storage:
   - raw uploads
   - parsed text and layout metadata
@@ -49,3 +52,13 @@ Core components:
 - Request status: QUEUED -> RUNNING -> SUCCEEDED | FAILED
 
 When a new document is indexed, ALL_DOCS projects must transition to OUTDATED.
+
+## Configuration Change Regeneration
+On startup, the API computes a pipeline signature (chunking, embeddings, and LLM
+configuration). If it differs from the stored signature, a background task
+re-indexes documents, re-parses questionnaires, and regenerates answers.
+
+## Chat Extension
+Chat uses the same retrieval pipeline as questionnaire answering and is strictly
+read-only. It does not mutate project state or answers, and it shares the same
+citations and confidence model for auditability.

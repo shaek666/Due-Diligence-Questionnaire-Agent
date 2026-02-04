@@ -35,6 +35,7 @@ def _build_citations(docs: List[Tuple[Document, float]]) -> list[Citation]:
         document_id = meta.get("document_id")
         if not document_id:
             continue
+        bounding_box = meta.get("bounding_box")
         citations.append(
             Citation(
                 document_id=UUID(document_id),
@@ -42,6 +43,7 @@ def _build_citations(docs: List[Tuple[Document, float]]) -> list[Citation]:
                 chunk_id=str(meta.get("chunk_id")),
                 snippet=snippet,
                 score=float(score),
+                bounding_box=bounding_box,
             )
         )
     return citations

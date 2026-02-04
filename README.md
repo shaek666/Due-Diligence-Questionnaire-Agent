@@ -1,6 +1,7 @@
 # Due Diligence Questionnaire Agent
 
 A full-stack AI system to automate due diligence questionnaires. It indexes company documents, parses questionnaire files into structured questions, generates answers with citations and confidence scores, and supports human review plus evaluation against ground-truth answers.
+Optional chat is included for read-only Q&A against the same indexed corpus.
 
 See `backend/README.md` and `frontend/README.md` for service-specific details.
 
