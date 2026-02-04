@@ -21,6 +21,19 @@ See `backend/README.md` and `frontend/README.md` for service-specific details.
 - API: http://localhost:8000
 - Frontend: http://localhost:5173
 
+## Docker Rebuild Checklist
+1) Pull latest code.
+2) Rebuild images: `docker compose build`
+3) Start services: `docker compose up`
+4) Confirm API is healthy: `http://localhost:8000/health`
+
+## Migration Notes
+- New tables were added (document_pages, review_events, chat tables, config_state).
+- The app uses `Base.metadata.create_all`, so missing tables are created automatically on startup.
+- If you encounter schema issues from an older run, remove the DB volume and restart:
+  - `docker compose down -v`
+  - `docker compose up --build`
+
 ## Quick Start (Local)
 Local scripts have been removed. Use Docker Compose.
 
