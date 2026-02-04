@@ -29,6 +29,8 @@ export interface Citation {
     y1: number;
     unit?: string;
     source?: string;
+    page_width?: number;
+    page_height?: number;
   } | null;
 }
 
@@ -84,12 +86,17 @@ export interface EvaluationResult {
   metrics: Array<{
     question_id: string;
     score: number;
+    semantic_score?: number;
+    keyword_overlap?: number;
     ai_answer: string;
     manual_answer: string;
   }>;
   summary: {
     average_score: number;
+    average_semantic_score?: number;
+    average_keyword_overlap?: number;
     question_count: number;
+    qualitative_assessment?: string;
   };
   created_at: string;
 }

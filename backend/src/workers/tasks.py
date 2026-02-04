@@ -8,6 +8,7 @@ from ..models.enums import RequestStatus
 from ..storage.db import db_session
 from ..services.indexing import index_document
 from ..services.requests import update_request
+from ..services.config_state import set_regen_inflight
 from ..models.db_models import Project, Question, Document, ChatMessage
 from ..models.enums import ProjectStatus
 from ..services.answers import generate_answer, upsert_ai_answer
@@ -159,6 +160,7 @@ def handle_config_change_task(previous_signature: str | None, current_signature:
     )
     try:
         with db_session() as db:
+            set_regen_inflight(db, True)
             projects = db.query(Project).all()
             documents = db.query(Document).all()
             for project in projects:
@@ -177,7 +179,13 @@ def handle_config_change_task(previous_signature: str | None, current_signature:
                     payload, status = generate_answer(question.prompt)
                     upsert_ai_answer(db, question, payload, status)
                 set_project_status(db, project.id, ProjectStatus.READY)
+            set_regen_inflight(db, False)
         logger.info("config_change.success current=%s", current_signature)
     except Exception:  # pragma: no cover - task failure capture
+        try:
+            with db_session() as db:
+                set_regen_inflight(db, False)
+        except Exception:
+            pass
         logger.exception("config_change.failed current=%s", current_signature)
         raise

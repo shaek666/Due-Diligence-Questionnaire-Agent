@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List
 
 from docx import Document as DocxDocument
 from openpyxl import load_workbook
@@ -10,28 +11,67 @@ from pptx import Presentation
 
 
 @dataclass
+class WordBox:
+    text: str
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+
+@dataclass
 class PageText:
     page_number: int
     text: str
     page_width: float | None = None
     page_height: float | None = None
+    words: List[WordBox] = field(default_factory=list)
 
 
 def parse_pdf(path: str) -> list[PageText]:
-    reader = PdfReader(path)
-    pages = []
-    for index, page in enumerate(reader.pages, start=1):
-        text = page.extract_text() or ""
-        media_box = page.mediabox
-        pages.append(
-            PageText(
-                page_number=index,
-                text=text,
-                page_width=float(media_box.width),
-                page_height=float(media_box.height),
+    try:
+        import pdfplumber
+
+        pages: list[PageText] = []
+        with pdfplumber.open(path) as pdf:
+            for index, page in enumerate(pdf.pages, start=1):
+                text = page.extract_text() or ""
+                words = []
+                for word in page.extract_words():
+                    words.append(
+                        WordBox(
+                            text=word.get("text", ""),
+                            x0=float(word.get("x0", 0.0)),
+                            y0=float(word.get("top", 0.0)),
+                            x1=float(word.get("x1", 0.0)),
+                            y1=float(word.get("bottom", 0.0)),
+                        )
+                    )
+                pages.append(
+                    PageText(
+                        page_number=index,
+                        text=text,
+                        page_width=float(page.width),
+                        page_height=float(page.height),
+                        words=words,
+                    )
+                )
+        return pages
+    except Exception:
+        reader = PdfReader(path)
+        pages: list[PageText] = []
+        for index, page in enumerate(reader.pages, start=1):
+            text = page.extract_text() or ""
+            media_box = page.mediabox
+            pages.append(
+                PageText(
+                    page_number=index,
+                    text=text,
+                    page_width=float(media_box.width),
+                    page_height=float(media_box.height),
+                )
             )
-        )
-    return pages
+        return pages
 
 
 def parse_docx(path: str) -> list[PageText]:

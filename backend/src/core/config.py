@@ -10,6 +10,7 @@ class Settings(BaseModel):
         for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
         if origin.strip()
     ]
+    config_watch_interval: int = int(os.getenv("CONFIG_WATCH_INTERVAL", "300"))
     database_url: str = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:postgres@db:5432/makeball")
     chroma_path: str = os.getenv("CHROMA_PATH", "./.chroma")
     worker_broker_url: str = os.getenv("WORKER_BROKER_URL", "redis://redis:6379/0")

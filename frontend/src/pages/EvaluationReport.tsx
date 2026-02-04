@@ -26,10 +26,12 @@ export default function EvaluationReport() {
 
   const exportRun = (run: EvaluationResult, format: "csv" | "xlsx") => {
     const rows = [
-      ["Question ID", "Score", "AI Answer", "Manual Answer"],
+      ["Question ID", "Score", "Semantic", "Keyword", "AI Answer", "Manual Answer"],
       ...run.metrics.map((metric) => [
         metric.question_id,
         metric.score.toFixed(3),
+        (metric.semantic_score ?? 0).toFixed(3),
+        (metric.keyword_overlap ?? 0).toFixed(3),
         metric.ai_answer,
         metric.manual_answer,
       ]),
@@ -72,7 +74,16 @@ export default function EvaluationReport() {
               <div className="tag">Run ID: {run.id}</div>
               <p>
                 Average score: {run.summary.average_score.toFixed(3)} ({run.summary.question_count} questions)
+                {run.summary.average_semantic_score !== undefined
+                  ? ` | Semantic: ${run.summary.average_semantic_score.toFixed(3)}`
+                  : ""}
+                {run.summary.average_keyword_overlap !== undefined
+                  ? ` | Keyword: ${run.summary.average_keyword_overlap.toFixed(3)}`
+                  : ""}
               </p>
+              {run.summary.qualitative_assessment ? (
+                <p className="tag">{run.summary.qualitative_assessment}</p>
+              ) : null}
               <div className="actions">
                 <button className="button secondary" onClick={() => exportRun(run, "csv")}>
                   Export CSV

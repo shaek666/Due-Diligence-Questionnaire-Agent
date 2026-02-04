@@ -15,5 +15,5 @@
 
 ## Evaluation Metrics
 - Retrieval: precision@k, recall@k, MRR
-- Generation: semantic similarity and faithfulness
-- Report: per-question score + overall summary
+- Generation: semantic similarity, keyword overlap, and faithfulness
+- Report: per-question score + overall summary + qualitative assessment

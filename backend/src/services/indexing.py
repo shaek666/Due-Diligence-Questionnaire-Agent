@@ -9,6 +9,7 @@ from ..indexing.chunking import chunk_pages
 from ..indexing.vector_store import get_chroma
 from ..models.db_models import Document
 from ..services.ingestion import parse_document
+from ..services.documents import store_document_pages
 from ..services.projects import mark_all_docs_outdated
 
 
@@ -17,6 +18,7 @@ def index_document(db: Session, document_id: str) -> None:
     if document is None or not document.path:
         raise ValueError("Document not found or missing path")
     pages = parse_document(document.path)
+    store_document_pages(db, document, pages)
     coarse_chunks = chunk_pages(
         document_id=str(document.id),
         source_name=document.name,

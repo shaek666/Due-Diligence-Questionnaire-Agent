@@ -24,12 +24,15 @@
   - Updates project scope or settings, triggers regen
 - POST /update-answer
   - Manual edits or status updates
+  - Emits review events for audit trail
 - GET /get-project-info
   - Project summary + questions + answers
 - GET /get-project-status
   - Project + last request status
 - GET /get-request-status
   - Request status and error details
+- GET /list-review-events
+  - Review event history for a given answer
 - POST /create-chat-session
   - Creates a chat session for follow-up questions
 - POST /chat-message-async

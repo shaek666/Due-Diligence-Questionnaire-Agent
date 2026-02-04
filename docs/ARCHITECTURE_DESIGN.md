@@ -36,9 +36,10 @@ Core components:
 
 ## Storage Layout
 - Postgres tables:
-  - projects, documents, questions, answers, requests, evaluation_runs
+  - projects, documents, document_pages, questions, answers, requests, evaluation_runs
+  - review_events (manual review audit trail)
   - chat_sessions, chat_messages
-  - config_state (pipeline signature)
+  - config_state (pipeline signature + regen state)
 - Chroma collections:
   - coarse_retrieval (section-level)
   - citation_chunks (fine-grained, with page + bbox metadata; PDF uses page-level bbox)

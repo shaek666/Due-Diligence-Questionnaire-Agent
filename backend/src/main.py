@@ -6,6 +6,9 @@ from .core.config import settings
 from .storage.db import Base, engine, db_session
 from .utils.logging import configure_logging
 from .services.config_state import check_and_update_signature
+from .core.config import settings
+import threading
+import time
 
 
 def create_app() -> FastAPI:
@@ -33,8 +36,27 @@ def create_app() -> FastAPI:
         except Exception:
             # Avoid blocking startup if config tracking fails.
             pass
+        _start_config_watcher()
 
     return app
+
+
+def _start_config_watcher() -> None:
+    def _watch() -> None:
+        while True:
+            try:
+                with db_session() as db:
+                    changed, previous, current = check_and_update_signature(db)
+                if changed:
+                    from .workers.tasks import handle_config_change_task
+
+                    handle_config_change_task.delay(previous, current)
+            except Exception:
+                pass
+            time.sleep(settings.config_watch_interval)
+
+    thread = threading.Thread(target=_watch, daemon=True)
+    thread.start()
 
 
 app = create_app()

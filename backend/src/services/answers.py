@@ -8,7 +8,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.documents import Document
 from sqlalchemy.orm import Session
 
-from ..models.db_models import Answer, Question
+from ..models.db_models import Answer, Question, ReviewEvent
 from ..models.enums import AnswerStatus
 from ..models.schemas import AnswerPayload, Citation
 from ..services.llm import get_llm
@@ -115,5 +115,6 @@ def update_manual_answer(
         answer.manual_answer = manual_answer.model_dump(mode="json")
     answer.updated_at = datetime.utcnow()
     db.add(answer)
+    db.add(ReviewEvent(answer_id=answer.id, status=status, note="Manual update"))
     db.flush()
     return answer

@@ -15,6 +15,7 @@
 ## Review Workflow
 - Manually update at least two answers.
 - Confirm status updates appear in Project Detail.
+- Verify review events are recorded via /list-review-events.
 
 ## Evaluation
 - Run evaluation.

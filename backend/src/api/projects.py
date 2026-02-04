@@ -19,6 +19,7 @@ from ..models.schemas import (
     DocumentRecord,
     RequestIdResponse,
     RequestRecord,
+    ReviewEventRecord,
     UpdateAnswerRequest,
     UpdateProjectRequest,
 )
@@ -292,4 +293,26 @@ def list_all_requests(db: Session = Depends(get_db)) -> list[RequestRecord]:
             updated_at=request.updated_at,
         )
         for request in requests
+    ]
+
+
+@router.get("/list-review-events", response_model=list[ReviewEventRecord])
+def list_review_events(answer_id: UUID, db: Session = Depends(get_db)) -> list[ReviewEventRecord]:
+    from ..models.db_models import ReviewEvent
+
+    events = (
+        db.query(ReviewEvent)
+        .filter(ReviewEvent.answer_id == answer_id)
+        .order_by(ReviewEvent.created_at.desc())
+        .all()
+    )
+    return [
+        ReviewEventRecord(
+            id=event.id,
+            answer_id=event.answer_id,
+            status=event.status,
+            note=event.note,
+            created_at=event.created_at,
+        )
+        for event in events
     ]

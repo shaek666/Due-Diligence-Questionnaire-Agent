@@ -16,6 +16,8 @@ class BoundingBox(BaseModel):
     y1: float
     unit: str = "pt"
     source: str = "page"
+    page_width: Optional[float] = None
+    page_height: Optional[float] = None
 
 
 class Citation(BaseModel):
@@ -71,6 +73,14 @@ class RequestRecord(BaseModel):
     detail: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+class ReviewEventRecord(BaseModel):
+    id: UUID
+    answer_id: UUID
+    status: AnswerStatus
+    note: Optional[str] = None
+    created_at: datetime
 
 
 class ChatSessionRecord(BaseModel):

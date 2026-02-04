@@ -37,6 +37,8 @@ class Document(Base):
     size_bytes: Mapped[int | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
+    pages: Mapped[list["DocumentPage"]] = relationship(back_populates="document", cascade="all, delete")
+
 
 class Question(Base):
     __tablename__ = "questions"
@@ -63,6 +65,33 @@ class Answer(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     question: Mapped[Question] = relationship(back_populates="answers")
+    review_events: Mapped[list["ReviewEvent"]] = relationship(back_populates="answer", cascade="all, delete")
+
+
+class DocumentPage(Base):
+    __tablename__ = "document_pages"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("documents.id"))
+    page_number: Mapped[int]
+    text: Mapped[str] = mapped_column(Text)
+    page_width: Mapped[float | None] = mapped_column(default=None)
+    page_height: Mapped[float | None] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+    document: Mapped[Document] = relationship(back_populates="pages")
+
+
+class ReviewEvent(Base):
+    __tablename__ = "review_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    answer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("answers.id"))
+    status: Mapped[AnswerStatus] = mapped_column(Enum(AnswerStatus))
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+    answer: Mapped[Answer] = relationship(back_populates="review_events")
 
 
 class Request(Base):
