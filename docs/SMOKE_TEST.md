@@ -2,7 +2,7 @@
 
 1) Start services
 - docker compose up --build
-- cd frontend && npm install && npm run dev
+- Open http://localhost:5173
 
 2) Upload documents
 - In Document Management, upload all PDFs in `data/`.

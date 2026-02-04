@@ -52,5 +52,5 @@
 - Questionnaire parse errors: return FAILED with error detail.
 - New documents: ALL_DOCS projects become OUTDATED.
 - Config changes: pipeline signature mismatch triggers auto re-index and
-  regeneration in the background.
+  regeneration in the background. The signature is re-checked periodically.
 - Chat is read-only and does not mutate questionnaire answers or project state.

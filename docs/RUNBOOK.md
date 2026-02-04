@@ -1,39 +1,33 @@
 # Runbook
 
-This runbook covers two modes:
-- Real mode: real embeddings + real LLM (CPU)
-- Fallback mode: fake embeddings + no LLM
+This repository is Docker-only. The compose stack runs API, worker, database,
+Redis, and frontend.
 
-## A. Real Mode (closer to production)
-
-1) Create env
-- ./scripts/setup_real_env.sh
-
-2) Start backend services
-- ./scripts/run_local_real.sh
-
-3) Start frontend
-- cd frontend
-- npm install
-- npm run dev
-
-4) Open UI
+## A) Start
+- `docker compose up --build`
 - Frontend: http://localhost:5173
 - API: http://localhost:8000
 
-## B. Docker-Only Mode
+## B) Rebuild Checklist
+1) Pull latest code.
+2) `docker compose build`
+3) `docker compose up`
+4) Confirm API: `http://localhost:8000/health`
 
-- Run `docker compose up --build`
-- Frontend: http://localhost:5173
-- API: http://localhost:8000
+## C) Migration Notes
+- New tables: document_pages, review_events, chat_sessions, chat_messages, config_state.
+- The app uses `Base.metadata.create_all`, so missing tables are created on startup.
+- If schema issues appear, reset volumes:
+  - `docker compose down -v`
+  - `docker compose up --build`
 
-## C. Test Plan A-Z
+## D) Test Plan A-Z
 
 A) Health
 - GET /health returns {"status":"ok"}
 
 B) Document ingestion
-- Upload each file in data/
+- Upload each file in `data/`
 - Confirm /list-documents returns entries
 - Confirm request status transitions to SUCCEEDED
 
@@ -53,10 +47,12 @@ D) Generate answers
 E) Review workflow
 - Update at least one answer to MANUAL_UPDATED
 - Confirm new manual answer appears in Project Detail
+- Confirm review events via /list-review-events
 
 F) Evaluation
 - Run evaluation
 - Confirm /list-evaluations returns a new run
+- Confirm summary includes qualitative assessment and keyword overlap metrics
 
 G) OUTDATED logic
 - Index a new document after project READY
@@ -76,3 +72,8 @@ K) Chat (optional)
 - Open Chat tab
 - Create a session and send a question
 - Confirm citations and confidence in responses
+
+L) Config change regeneration
+- Change chunk sizes or model settings in `.env`
+- Restart the stack
+- Confirm regeneration requests appear in Request Status
