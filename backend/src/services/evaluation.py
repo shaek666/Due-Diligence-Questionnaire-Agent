@@ -4,6 +4,7 @@ from datetime import datetime
 from functools import lru_cache
 from typing import Any
 from uuid import UUID
+import logging
 
 import numpy as np
 from difflib import SequenceMatcher
@@ -19,8 +20,17 @@ def get_eval_model():
     try:
         from sentence_transformers import SentenceTransformer
 
-        return SentenceTransformer(settings.embedding_model_name)
-    except Exception:
+        return SentenceTransformer(settings.embedding_model_name, device=settings.embeddings_device)
+    except Exception as exc:
+        if settings.embeddings_device.lower() != "cpu":
+            logger.warning("Eval model load failed on %s, retrying on cpu.", settings.embeddings_device)
+            try:
+                from sentence_transformers import SentenceTransformer
+
+                return SentenceTransformer(settings.embedding_model_name, device="cpu")
+            except Exception:
+                pass
+        logger.exception("Eval model load failed: %s", exc)
         return None
 
 
@@ -156,3 +166,4 @@ def evaluate_project(db: Session, project_id: UUID) -> EvaluationRun:
     db.add(run)
     db.flush()
     return run
+logger = logging.getLogger("evaluation")

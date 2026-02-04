@@ -137,30 +137,3 @@ export async function listEvaluations(projectId: string) {
   const response = await fetch(`${API_URL}/list-evaluations?project_id=${projectId}`, { headers });
   return handleJson(response);
 }
-
-export async function createChatSession() {
-  const response = await fetch(`${API_URL}/create-chat-session`, {
-    method: "POST",
-    headers,
-  });
-  return handleJson(response);
-}
-
-export async function listChatSessions() {
-  const response = await fetch(`${API_URL}/list-chat-sessions`, { headers });
-  return handleJson(response);
-}
-
-export async function sendChatMessage(payload: { session_id?: string; message: string }) {
-  const response = await fetch(`${API_URL}/chat-message-async`, {
-    method: "POST",
-    headers: { ...headers, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return handleJson(response);
-}
-
-export async function listChatMessages(sessionId: string) {
-  const response = await fetch(`${API_URL}/list-chat-messages?session_id=${sessionId}`, { headers });
-  return handleJson(response);
-}

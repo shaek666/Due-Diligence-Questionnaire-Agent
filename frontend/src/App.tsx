@@ -5,7 +5,6 @@ import QuestionReview from "./pages/QuestionReview";
 import DocumentManagement from "./pages/DocumentManagement";
 import EvaluationReport from "./pages/EvaluationReport";
 import RequestStatusPage from "./pages/RequestStatus";
-import Chat from "./pages/Chat";
 
 const tabs = [
   { key: "projects", label: "Projects" },
@@ -14,7 +13,6 @@ const tabs = [
   { key: "documents", label: "Documents" },
   { key: "evaluation", label: "Evaluation" },
   { key: "requests", label: "Request Status" },
-  { key: "chat", label: "Chat" },
 ] as const;
 
 export default function App() {
@@ -47,7 +45,6 @@ export default function App() {
         {activeTab === "documents" && <DocumentManagement />}
         {activeTab === "evaluation" && <EvaluationReport />}
         {activeTab === "requests" && <RequestStatusPage />}
-        {activeTab === "chat" && <Chat />}
       </main>
     </div>
   );

@@ -9,11 +9,10 @@ from ..storage.db import db_session
 from ..services.indexing import index_document
 from ..services.requests import update_request
 from ..services.config_state import set_regen_inflight
-from ..models.db_models import Project, Question, Document, ChatMessage
+from ..models.db_models import Project, Question, Document
 from ..models.enums import ProjectStatus
 from ..services.answers import generate_answer, upsert_ai_answer
 from ..services.evaluation import evaluate_project
-from ..services.chat import add_message
 from ..services.questionnaire import parse_questionnaire_pdf
 from ..services.questions import get_questions_for_project, store_questions
 from ..services.projects import set_project_status
@@ -122,32 +121,6 @@ def evaluate_project_task(request_id: str, project_id: str) -> None:
     except Exception as exc:  # pragma: no cover
         _set_status(request_uuid, RequestStatus.FAILED, detail=str(exc))
         logger.exception("evaluate_project.failed request=%s project=%s", request_id, project_id)
-        raise
-
-
-@celery_app.task(name="chat_generate")
-def chat_generate_task(request_id: str, session_id: str, message_id: str) -> None:
-    request_uuid = UUID(request_id)
-    logger.info("chat_generate.start request=%s session=%s", request_id, session_id)
-    _set_status(request_uuid, RequestStatus.RUNNING)
-    try:
-        with db_session() as db:
-            message = db.get(ChatMessage, UUID(message_id))
-            if message is None:
-                raise ValueError("Chat message not found")
-            payload, _status = generate_answer(message.content)
-            add_message(
-                db,
-                UUID(session_id),
-                role="assistant",
-                content=payload.answer,
-                answer_payload=payload.model_dump(mode="json"),
-            )
-        _set_status(request_uuid, RequestStatus.SUCCEEDED)
-        logger.info("chat_generate.success request=%s session=%s", request_id, session_id)
-    except Exception as exc:  # pragma: no cover
-        _set_status(request_uuid, RequestStatus.FAILED, detail=str(exc))
-        logger.exception("chat_generate.failed request=%s session=%s", request_id, session_id)
         raise
 
 

@@ -14,6 +14,7 @@ def current_signature() -> str:
     payload = {
         "embeddings_backend": os.getenv("EMBEDDINGS_BACKEND", "sentence_transformers"),
         "embedding_model_name": os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2"),
+        "embeddings_device": os.getenv("EMBEDDINGS_DEVICE", "cpu"),
         "coarse_chunk_size": int(os.getenv("COARSE_CHUNK_SIZE", "1800")),
         "coarse_chunk_overlap": int(os.getenv("COARSE_CHUNK_OVERLAP", "200")),
         "citation_chunk_size": int(os.getenv("CITATION_CHUNK_SIZE", "800")),

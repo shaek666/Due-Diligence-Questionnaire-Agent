@@ -35,9 +35,9 @@ Run (Docker)
 - From repo root: docker compose up --build
 - API: http://localhost:8000
 
-Run (Local)
-- pip install -r requirements.txt
-- uvicorn app:app --reload
+Optional GPU (Docker)
+- `docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build`
+- Set `LLM_DEVICE=cuda` and `EMBEDDINGS_DEVICE=cuda` in `.env`.
 
 CPU Notes
 - Default model is Mistral-7B. On CPU it may be slow; you can set a smaller model via LLM_MODEL_NAME.
@@ -47,9 +47,3 @@ CPU Notes
 Embedding Notes
 - Default: EMBEDDINGS_BACKEND=sentence_transformers
 - Low-resource fallback: EMBEDDINGS_BACKEND=fake
-
-Local Scripts
-- scripts/setup_real_env.sh: creates a Python 3.11 env with CPU-only torch.
-- scripts/run_local_real.sh: starts Postgres/Redis + API/worker with real embeddings + LLM.
-- scripts/run_local_fallback.sh: starts Postgres/Redis + API/worker with fake embeddings + no LLM.
-- scripts/stop_local.sh: stops services and cleans local PG data.

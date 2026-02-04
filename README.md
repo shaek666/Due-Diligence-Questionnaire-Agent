@@ -1,7 +1,6 @@
 # Due Diligence Questionnaire Agent
 
 A full-stack AI system to automate due diligence questionnaires. It indexes company documents, parses questionnaire files into structured questions, generates answers with citations and confidence scores, and supports human review plus evaluation against ground-truth answers.
-Optional chat is included for read-only Q&A against the same indexed corpus.
 
 See `backend/README.md` and `frontend/README.md` for service-specific details.
 
@@ -21,6 +20,11 @@ See `backend/README.md` and `frontend/README.md` for service-specific details.
 - API: http://localhost:8000
 - Frontend: http://localhost:5173
 
+## Optional GPU (Docker)
+- Install NVIDIA Container Toolkit on the host.
+- `docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build`
+- Set `LLM_DEVICE=cuda` and `EMBEDDINGS_DEVICE=cuda` in `.env` for GPU execution.
+
 ## Docker Rebuild Checklist
 1) Pull latest code.
 2) Rebuild images: `docker compose build`
@@ -28,7 +32,7 @@ See `backend/README.md` and `frontend/README.md` for service-specific details.
 4) Confirm API is healthy: `http://localhost:8000/health`
 
 ## Migration Notes
-- New tables were added (document_pages, review_events, chat tables, config_state).
+- New tables were added (document_pages, review_events, config_state).
 - The app uses `Base.metadata.create_all`, so missing tables are created automatically on startup.
 - If you encounter schema issues from an older run, remove the DB volume and restart:
   - `docker compose down -v`

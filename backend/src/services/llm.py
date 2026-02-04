@@ -21,6 +21,25 @@ def get_llm() -> Optional[HuggingFacePipeline]:
         from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
         dtype = getattr(torch, settings.llm_torch_dtype, torch.float32)
+        device_setting = settings.llm_device.lower()
+        if device_setting in ("auto", ""):
+            device_setting = "cuda" if torch.cuda.is_available() else "cpu"
+        device_str = "cpu"
+        device_index = -1
+        if device_setting.startswith("cuda"):
+            if torch.cuda.is_available():
+                if device_setting == "cuda":
+                    device_str = "cuda:0"
+                    device_index = 0
+                else:
+                    try:
+                        device_index = int(device_setting.split(":")[1])
+                        device_str = device_setting
+                    except (IndexError, ValueError):
+                        device_str = "cuda:0"
+                        device_index = 0
+            else:
+                logger.warning("CUDA requested but not available; using CPU.")
         tokenizer = AutoTokenizer.from_pretrained(
             settings.llm_model_name, local_files_only=settings.llm_local_files_only
         )
@@ -30,6 +49,8 @@ def get_llm() -> Optional[HuggingFacePipeline]:
             low_cpu_mem_usage=True,
             local_files_only=settings.llm_local_files_only,
         )
+        if device_index >= 0:
+            model = model.to(device_str)
         generator = pipeline(
             "text-generation",
             model=model,
@@ -37,6 +58,7 @@ def get_llm() -> Optional[HuggingFacePipeline]:
             max_new_tokens=settings.llm_max_tokens,
             do_sample=False,
             temperature=0.0,
+            device=device_index,
         )
         return HuggingFacePipeline(pipeline=generator)
     except Exception as exc:  # pragma: no cover - environment dependent

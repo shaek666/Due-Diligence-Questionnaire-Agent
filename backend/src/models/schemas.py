@@ -83,20 +83,6 @@ class ReviewEventRecord(BaseModel):
     created_at: datetime
 
 
-class ChatSessionRecord(BaseModel):
-    id: UUID
-    created_at: datetime
-
-
-class ChatMessageRecord(BaseModel):
-    id: UUID
-    session_id: UUID
-    role: str
-    content: str
-    answer_payload: Optional[AnswerPayload] = None
-    created_at: datetime
-
-
 class DocumentRecord(BaseModel):
     id: UUID
     name: str
@@ -108,16 +94,6 @@ class DocumentRecord(BaseModel):
 
 
 class RequestIdResponse(BaseModel):
-    request_id: UUID
-
-
-class ChatMessageRequest(BaseModel):
-    session_id: Optional[UUID] = None
-    message: str
-
-
-class ChatMessageResponse(BaseModel):
-    session_id: UUID
     request_id: UUID
 
 
