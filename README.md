@@ -18,7 +18,7 @@ See `backend/README.md` and `frontend/README.md` for service-specific details.
 ## Quick Start (Docker)
 - `docker compose up --build`
 - API: http://localhost:8000
-- Frontend: `cd frontend && npm install && npm run dev`
+- Frontend: http://localhost:5173
 
 ## Quick Start (Local)
 - Backend: `cd backend && pip install -r requirements.txt && uvicorn app:app --reload`
