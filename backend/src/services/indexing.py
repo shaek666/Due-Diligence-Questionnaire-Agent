@@ -1,0 +1,40 @@
+from __future__ import annotations
+
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from ..core.config import settings
+from ..indexing.chunking import chunk_pages
+from ..indexing.vector_store import get_chroma
+from ..models.db_models import Document
+from ..services.ingestion import parse_document
+from ..services.projects import mark_all_docs_outdated
+
+
+def index_document(db: Session, document_id: str) -> None:
+    document = db.get(Document, UUID(document_id))
+    if document is None or not document.path:
+        raise ValueError("Document not found or missing path")
+    pages = parse_document(document.path)
+    coarse_chunks = chunk_pages(
+        document_id=str(document.id),
+        source_name=document.name,
+        pages=pages,
+        chunk_size=settings.coarse_chunk_size,
+        chunk_overlap=settings.coarse_chunk_overlap,
+    )
+    citation_chunks = chunk_pages(
+        document_id=str(document.id),
+        source_name=document.name,
+        pages=pages,
+        chunk_size=settings.citation_chunk_size,
+        chunk_overlap=settings.citation_chunk_overlap,
+    )
+    if coarse_chunks:
+        coarse_store = get_chroma("coarse_retrieval")
+        coarse_store.add_documents(coarse_chunks)
+    if citation_chunks:
+        citation_store = get_chroma("citation_chunks")
+        citation_store.add_documents(citation_chunks)
+    mark_all_docs_outdated(db)
