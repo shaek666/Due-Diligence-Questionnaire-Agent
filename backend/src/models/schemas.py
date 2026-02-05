@@ -111,6 +111,12 @@ class RequestIdResponse(BaseModel):
     request_id: UUID
 
 
+class IndexDocumentResponse(BaseModel):
+    request_id: UUID
+    document_id: UUID
+    deduped: bool = False
+
+
 class ChatMessageRequest(BaseModel):
     session_id: Optional[UUID] = None
     message: str

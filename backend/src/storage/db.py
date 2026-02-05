@@ -1,18 +1,21 @@
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from ..core.config import settings
 
-# SQLAlchemy engine and session configuration
-engine = create_engine(settings.database_url, future=True)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
+
+engine = create_engine(settings.database_url, pool_pre_ping=True, future=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
 
 @contextmanager
 def db_session():
-    """Provide a transactional scope around a series of operations."""
     session = SessionLocal()
     try:
         yield session
@@ -25,5 +28,4 @@ def db_session():
 
 
 def init_db() -> None:
-    """Create database tables defined on the Base metadata."""
     Base.metadata.create_all(bind=engine)

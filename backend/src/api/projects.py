@@ -17,6 +17,7 @@ from ..models.schemas import (
     QuestionRecord,
     EvaluationResult,
     DocumentRecord,
+    IndexDocumentResponse,
     RequestIdResponse,
     RequestRecord,
     ReviewEventRecord,
@@ -24,10 +25,11 @@ from ..models.schemas import (
     UpdateProjectRequest,
 )
 from ..models.db_models import Project, Request
+from ..models.enums import RequestStatus
 from ..services.documents import create_document, list_documents
 from ..services.answers import update_manual_answer
 from ..services.projects import create_project, list_projects, update_project_scope
-from ..services.requests import create_request, list_requests
+from ..services.requests import create_request, list_requests, update_request
 from ..storage.db import db_session
 
 router = APIRouter()
@@ -51,7 +53,12 @@ def create_project_endpoint(
         raise HTTPException(status_code=422, detail=f"Invalid scope JSON: {exc}") from exc
     if not isinstance(raw_scope, list):
         raise HTTPException(status_code=422, detail="Scope must be a JSON list of UUIDs")
-    parsed_scope = [UUID(item) for item in raw_scope]
+    parsed_scope = []
+    for item in raw_scope:
+        try:
+            parsed_scope.append(UUID(str(item)))
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid scope UUID: {item}") from exc
     request = create_request(db, kind="create_project")
     from ..services.files import ensure_storage_dirs, save_questionnaire
 
@@ -222,13 +229,13 @@ def list_all_projects(db: Session = Depends(get_db)) -> list[ProjectRecord]:
     ]
 
 
-@router.post("/index-document-async", response_model=RequestIdResponse)
+@router.post("/index-document-async", response_model=IndexDocumentResponse)
 def index_document(
     name: str = Form(...),
     metadata: str = Form("{}"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-) -> RequestIdResponse:
+) -> IndexDocumentResponse:
     try:
         parsed_meta = json.loads(metadata) if metadata else {}
     except json.JSONDecodeError as exc:
@@ -238,16 +245,34 @@ def index_document(
     request = create_request(db, kind="index_document")
     document = create_document(db, name=name, metadata=parsed_meta)
     from ..services.files import ensure_storage_dirs, save_upload
-    from ..services.documents import update_document_file
+    from ..services.documents import update_document_file, find_document_by_hash
+    from pathlib import Path
 
     ensure_storage_dirs()
-    path, size = save_upload(str(document.id), file)
+    path, size, content_hash = save_upload(str(document.id), file)
     update_document_file(db, document=document, path=path, mime_type=file.content_type, size_bytes=size)
+    document.metadata_ = {**(document.metadata_ or {}), "content_hash": content_hash}
+    db.add(document)
+    duplicate = find_document_by_hash(db, content_hash, size, exclude_id=document.id)
+    if duplicate is not None:
+        db.delete(document)
+        try:
+            Path(path).unlink(missing_ok=True)
+        except Exception:
+            pass
+        update_request(
+            db,
+            request_id=request.id,
+            status=RequestStatus.SUCCEEDED,
+            detail=f"Duplicate document detected; reusing {duplicate.id}",
+        )
+        db.commit()
+        return IndexDocumentResponse(request_id=request.id, document_id=duplicate.id, deduped=True)
     db.commit()
     from ..workers.tasks import index_document_task
 
     index_document_task.delay(str(request.id), str(document.id))
-    return RequestIdResponse(request_id=request.id)
+    return IndexDocumentResponse(request_id=request.id, document_id=document.id, deduped=False)
 
 
 @router.get("/list-documents", response_model=list[DocumentRecord])

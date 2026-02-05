@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 from sqlalchemy.orm import Session
 
 from ..models.db_models import Document, DocumentPage
@@ -30,6 +32,22 @@ def update_document_file(
 
 def list_documents(db: Session) -> list[Document]:
     return db.query(Document).order_by(Document.created_at.desc()).all()
+
+
+def find_document_by_hash(
+    db: Session, content_hash: str, size_bytes: int | None, exclude_id: uuid.UUID | None = None
+) -> Document | None:
+    if not content_hash:
+        return None
+    query = db.query(Document)
+    if size_bytes is not None:
+        query = query.filter(Document.size_bytes == size_bytes)
+    for doc in query.all():
+        if exclude_id and doc.id == exclude_id:
+            continue
+        if (doc.metadata_ or {}).get("content_hash") == content_hash:
+            return doc
+    return None
 
 
 def store_document_pages(db: Session, document: Document, pages: list[PageText]) -> None:

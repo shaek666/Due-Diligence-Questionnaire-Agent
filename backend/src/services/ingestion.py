@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 from pathlib import Path
 from typing import List
 
@@ -8,6 +9,8 @@ from docx import Document as DocxDocument
 from openpyxl import load_workbook
 from pypdf import PdfReader
 from pptx import Presentation
+
+logger = logging.getLogger("ingestion")
 
 
 @dataclass
@@ -57,7 +60,8 @@ def parse_pdf(path: str) -> list[PageText]:
                     )
                 )
         return pages
-    except Exception:
+    except Exception as exc:
+        logger.warning("pdfplumber failed for %s, falling back to pypdf: %s", path, exc)
         reader = PdfReader(path)
         pages: list[PageText] = []
         for index, page in enumerate(reader.pages, start=1):

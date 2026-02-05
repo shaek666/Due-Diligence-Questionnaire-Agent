@@ -1,14 +1,14 @@
+import threading
+import time
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.router import api_router
 from .core.config import settings
+from .services.config_state import check_and_update_signature
 from .storage.db import Base, engine, db_session
 from .utils.logging import configure_logging
-from .services.config_state import check_and_update_signature
-from .core.config import settings
-import threading
-import time
 
 
 def create_app() -> FastAPI:

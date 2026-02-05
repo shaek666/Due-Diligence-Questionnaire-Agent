@@ -25,7 +25,10 @@ export default function DocumentManagement() {
     try {
       const response = await indexDocument({ name: name || file.name, metadata: parsed, file });
       setLastRequest(response.request_id);
-      addDocument({ id: response.request_id, name: name || file.name, request_id: response.request_id });
+      if (response.deduped) {
+        setError("Duplicate document detected; existing record reused.");
+      }
+      addDocument({ id: response.document_id, name: name || file.name, request_id: response.request_id });
     } catch (err: any) {
       setError(err.message ?? "Failed to upload document.");
     }
@@ -34,9 +37,7 @@ export default function DocumentManagement() {
   const refreshDocuments = async () => {
     try {
       const result = await listDocuments();
-      setDocuments(
-        (result as any[]).map((doc) => ({ id: doc.id, name: doc.name, request_id: doc.id })),
-      );
+      setDocuments((result as any[]).map((doc) => ({ id: doc.id, name: doc.name })));
     } catch (err: any) {
       setError(err.message ?? "Failed to refresh documents.");
     }
@@ -81,7 +82,7 @@ export default function DocumentManagement() {
           <thead>
             <tr>
               <th>Document</th>
-              <th>Request</th>
+              <th>Request ID</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +94,7 @@ export default function DocumentManagement() {
               documents.map((doc) => (
                 <tr key={doc.id}>
                   <td>{doc.name}</td>
-                  <td className="tag">{doc.request_id}</td>
+                  <td className="tag">{doc.request_id ?? "—"}</td>
                 </tr>
               ))
             )}
