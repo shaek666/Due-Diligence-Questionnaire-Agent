@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 import logging
+import traceback
 
 from .celery_app import celery_app
 from ..models.enums import RequestStatus
@@ -17,6 +18,7 @@ from ..services.chat import add_message
 from ..services.questionnaire import parse_questionnaire_pdf
 from ..services.questions import get_questions_for_project, store_questions
 from ..services.projects import set_project_status
+from ..utils.request_logger import append_request_log
 
 logger = logging.getLogger("workers")
 
@@ -70,19 +72,25 @@ def parse_questionnaire_task(request_id: str, project_id: str) -> None:
 def generate_all_answers_task(request_id: str, project_id: str) -> None:
     request_uuid = UUID(request_id)
     logger.info("generate_all_answers.start request=%s project=%s", request_id, project_id)
+    append_request_log(request_id, f"generate_all_answers start project={project_id}")
     _set_status(request_uuid, RequestStatus.RUNNING)
     try:
         with db_session() as db:
             set_project_status(db, UUID(project_id), ProjectStatus.REGENERATING)
             questions = get_questions_for_project(db, project_id)
             for question in questions:
+                append_request_log(request_id, f"question start id={question.id} order={question.order}")
                 payload, status = generate_answer(question.prompt)
                 upsert_ai_answer(db, question, payload, status)
+                append_request_log(request_id, f"question done id={question.id} status={status.value}")
             set_project_status(db, UUID(project_id), ProjectStatus.READY)
         _set_status(request_uuid, RequestStatus.SUCCEEDED)
+        append_request_log(request_id, "generate_all_answers success")
         logger.info("generate_all_answers.success request=%s project=%s", request_id, project_id)
     except Exception as exc:  # pragma: no cover
         _set_status(request_uuid, RequestStatus.FAILED, detail=str(exc))
+        append_request_log(request_id, f"generate_all_answers failed error={exc}")
+        append_request_log(request_id, traceback.format_exc())
         logger.exception("generate_all_answers.failed request=%s project=%s", request_id, project_id)
         raise
 
