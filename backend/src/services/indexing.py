@@ -44,6 +44,8 @@ def index_document(db: Session, document_id: str) -> None:
         chunk_size=settings.citation_chunk_size,
         chunk_overlap=settings.citation_chunk_overlap,
     )
+    if not coarse_chunks and not citation_chunks:
+        raise ValueError("No text extracted for indexing; document may be image-only.")
     if coarse_chunks:
         coarse_chunks = filter_complex_metadata(coarse_chunks)
         coarse_store.add_documents(coarse_chunks)

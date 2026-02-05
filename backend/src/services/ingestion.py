@@ -36,6 +36,7 @@ def parse_pdf(path: str) -> list[PageText]:
         import pdfplumber
 
         pages: list[PageText] = []
+        extracted_any = False
         with pdfplumber.open(path) as pdf:
             for index, page in enumerate(pdf.pages, start=1):
                 text = page.extract_text() or ""
@@ -50,6 +51,10 @@ def parse_pdf(path: str) -> list[PageText]:
                             y1=float(word.get("bottom", 0.0)),
                         )
                     )
+                if not text and words:
+                    text = " ".join([word.text for word in words if word.text])
+                if text or words:
+                    extracted_any = True
                 pages.append(
                     PageText(
                         page_number=index,
@@ -59,6 +64,8 @@ def parse_pdf(path: str) -> list[PageText]:
                         words=words,
                     )
                 )
+        if not extracted_any:
+            raise RuntimeError("No text extracted with pdfplumber")
         return pages
     except Exception as exc:
         logger.warning("pdfplumber failed for %s, falling back to pypdf: %s", path, exc)
