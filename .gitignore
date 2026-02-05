@@ -2,6 +2,8 @@ AGENTS.md
 .env
 storage/
 storage_fallback/
+!backend/src/storage/
+!backend/src/storage/**
 .chroma/
 __pycache__/
 *.pyc
