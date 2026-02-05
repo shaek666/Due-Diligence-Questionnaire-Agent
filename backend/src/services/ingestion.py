@@ -108,6 +108,17 @@ def parse_pptx(path: str) -> list[PageText]:
     return pages
 
 
+def parse_text(path: str) -> list[PageText]:
+    # Handle plain text and markdown files by reading the file
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except Exception:
+        # Fallback to empty content if reading fails
+        text = ""
+    return [PageText(page_number=1, text=text)]
+
+
 def parse_document(path: str) -> list[PageText]:
     extension = Path(path).suffix.lower()
     if extension == ".pdf":
@@ -118,4 +129,6 @@ def parse_document(path: str) -> list[PageText]:
         return parse_xlsx(path)
     if extension == ".pptx":
         return parse_pptx(path)
+    if extension in (".txt", ".md"):
+        return parse_text(path)
     raise ValueError(f"Unsupported file type: {extension}")
