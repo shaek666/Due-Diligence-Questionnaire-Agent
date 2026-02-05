@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from uuid import UUID
 import logging
+from uuid import UUID
 
+from langchain_community.vectorstores.utils import filter_complex_metadata
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
@@ -44,7 +45,9 @@ def index_document(db: Session, document_id: str) -> None:
         chunk_overlap=settings.citation_chunk_overlap,
     )
     if coarse_chunks:
+        coarse_chunks = filter_complex_metadata(coarse_chunks)
         coarse_store.add_documents(coarse_chunks)
     if citation_chunks:
+        citation_chunks = filter_complex_metadata(citation_chunks)
         citation_store.add_documents(citation_chunks)
     mark_all_docs_outdated(db)

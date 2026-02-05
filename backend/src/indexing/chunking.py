@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from typing import Iterable, Tuple
@@ -38,7 +39,7 @@ def chunk_pages(
                 "chunk_id": f"{document_id}-{page.page_number}-{index}-{uuid.uuid4().hex}",
             }
             if bbox:
-                metadata["bounding_box"] = bbox
+                metadata["bounding_box_json"] = json.dumps(bbox)
             chunks.append(
                 Document(
                     page_content=text,

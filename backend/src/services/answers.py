@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
 from typing import List, Tuple
 from uuid import UUID
 
@@ -36,6 +37,18 @@ def _build_citations(docs: List[Tuple[Document, float]]) -> list[Citation]:
         if not document_id:
             continue
         bounding_box = meta.get("bounding_box")
+        if isinstance(bounding_box, str):
+            try:
+                bounding_box = json.loads(bounding_box)
+            except json.JSONDecodeError:
+                bounding_box = None
+        if not bounding_box:
+            bbox_json = meta.get("bounding_box_json")
+            if isinstance(bbox_json, str):
+                try:
+                    bounding_box = json.loads(bbox_json)
+                except json.JSONDecodeError:
+                    bounding_box = None
         citations.append(
             Citation(
                 document_id=UUID(document_id),
